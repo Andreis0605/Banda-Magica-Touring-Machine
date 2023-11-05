@@ -1,0 +1,140 @@
+BANDA MAGICA
+
+In main.c
+
+In main sunt incluse toate headerele pentru celelalte fisiere care contin
+functii care vor fi apelate. Initializam banda, coada de executie si stivele de
+undo si redo. Incepem citirea. Comenzile din fisier sunt citite linie cu linie.
+In functie de tipul comenzii, acestea sunt executate diferit:
+
+-comenzile de tip UPDATE sunt introduse in coada de executie, folosind o 
+codificare pentru fiecare tip de comanda:
+
+MOVE_LEFT = 1
+MOVE_RIGHT = 2
+MOVE_LEFT_CHAR = 3
+MOVE_RIGHT_CHAR = 4
+INSERT_LEFT_CHAR = 5
+INSERT_RIGHT_CHAR = 6
+WRITE = 7
+
+-comenzile de tid QUERY sunt executate pe loc
+
+-comenzile de tip EXECUE sunt executate pe loc
+
+-comenzile de tip UNDO/REDO sunt executate pe loc
+
+La sfarsit, se dezaloca memoria pentru banda, coada de executie si stivele de 
+undo si redo si se inchid fisiere
+
+In date.h
+
+Header-ul date.h contine declaratia tuturor structurilor pe care le foloseste
+programul. 
+
+-tipul NOD reprezinta nodurile care vor folosite in constructia benzii.
+
+-tipul LIST reprezinta banda
+
+-tipul EXEC_NODE reprezinta nodurile care alcatuiesc coada de executie
+
+-tipul EXEC_QUEUE reprezinta coada de executie
+
+-tipul UDRD_NODE reprezinta nodurile care alcatuiesc stivele de undo si redo
+
+-tipul UDRD_STACK reprezina stivele de undo si redo
+
+In update.c
+
+Functia move_left primeste ca parametru banda si deplaseaza degetul cu un
+element la stanga. Daca aceasta operatie este posibila, returneaza 1, iar daca
+nu returneaza 0.
+
+Functia move_right primeste ca parametru banda si deplaseaza degetul cu un
+element mai la dreapta. Daca degetul era deja la capatul benzi atunci mai adauga
+in banda un element cu valoarea #.
+
+Funcita write primeste ca parametru banda si un caracter. Modifica valoarea
+elentului pe care se afla degetul in valoarea caracterului primit.
+
+Functia insert_right primeste ca parametru banda si un caracter. Acesta aloca
+memorie pentru inca un nod care va fi adaugat in banda. Se verifica daca
+elemntul trebuie adaugat ultimul in coada sau in interiorul cozii. Apoi degetul
+se muta pe elementul inserat.
+
+Functia insert_left primeste ca parametru banda, un caracter si un fisier. 
+Acesta aloca memorie pentru inca un nod care va fi adaugat in banda. Se 
+verifica daca se  poate efectua aceasta operatie(daca degetul nu e pe primul 
+element din banda). Daca se poate, se adauga si degetul se muta pe acesta. 
+Daca nu, se afiseaza eroare in fisier si se dezaloca memoria pentru 
+nodul respectiv.
+
+Functia move_left_char primeste ca parametru banda, un caracter si un fisier.
+Aceasta parcurge banda in stanga, pornind de la pozitia curenta a degetului si 
+cauta un nod care are ca valoare caracterul dat. Daca il gaseste, muta degetul
+pe aceasta pozitie. Daca nu, se afiseaza in fisier mesajul de eroare.
+
+Functia move_right_char primeste ca parametru banda si un caracter. Aceasta
+parcurge banda spre dreapta pornind de la pozitia curenta a degetului si cauta
+un nod care are ca valoare caracterul dat. Daca il gaseste muta degetul pe acea
+pozitie. Daca nu, aduga un nou nod cu valoarea '#' la finalul benzii.
+
+In query.c
+
+Functia show_current primeste ca parametru banda si un fisier. Aceasta scrie in
+fisier valoarea din nodul pe care se afla degetul in acel moment.
+
+Functia show primeste ca parametru banda si un fisier. Aceasta parcurge banda si
+afiseaza valorile din fiecare nod al benzii, iar cand intalneste degetul
+incadreaza caracteul corespunzator intre '|'.
+
+In execute.c
+
+Functia init_exec_queue primeste ca parametru coada de executie si o
+initializeaza.
+
+Functia add_exec_queue primeste ca parametru coada de executie, codificarea unei
+operatii, eventualul argument al unei operatii(acesta este 0 cand operatia nu 
+are nevoie de argumente) si pozitia degetului din momentul adaugarii acestei 
+operatii in coada. Se aloca memorie pentru un nod specific cozii de executie,
+se introduc valorile necesare transmise prin parametrii functiei si se adauga
+la sfarsitul cozii.
+
+Functia execute primeste ca parametru coada de executie, banda, un fisier, stiva
+de undo si stiva de redo. Functia verifica daca exista ceva in coada de 
+executie si, daca da, apeleaza functia respectiva(una din functile de update) si
+ii transmite parametri de care are nevoie. Daca functia apelatate este move_left
+sau move_right atunci o adauga in stiva de undo, daca acesast functie s-a putut
+executa. Apoi dezaloca memoria nodului care stoca instructiunea executata.
+
+In diverse.c
+
+Functia init_banda primeste ca parametru banda. Aceasta initializeaza banda,
+alocand memorie pentru santinela si primul nod.
+
+Functia free_banda primeste ca parametru banda. Aceasta dezaloca memoria
+folosita de banda pe parcursul programului.
+
+In udrd.c
+
+Functia init_udrd primeste ca parametru o stiva de undo/redo. Aceasta
+initializeaza stiva.
+
+Functia empty_udrd primeste ca parametru o stiva undo/redo. Aceasta functie
+elibereaza memoria folosita de aceasta stiva, lasand la final stiva initializata
+
+Functia push_udrd primeste ca parametru o stiva undo/redo si un pointer catre
+un nod din banda. Aceasta functie aloca memorie pentru un nod de tip undo/redo
+in care pune pointerul primit ca parametru. Apoi adauga acest nod in varful
+stivei pe care a primit-o ca parametru.
+
+Functia pop_udrd primeste ca parametrii doua stive undo/redo(numite sursa si 
+destinatie) si banda. Apoi ia nodul din varful stivei sursa, face ca degetul
+sa indice la elementul din lista memorat de acest nod, apoi pune in varful
+stivei destinatie un nod care retine pozitia actuala a benzii. La final,
+elibereaza memoria pentru nodul din varful stivei sursa.
+
+Functia delete_udrd_top primeste ca parametru o stiva de undo/redo. Aceasta
+verifica daca stiva este goala, iar daca nu elimina elementul din varful stivei,
+dezalocand memoria acestuia.
+
